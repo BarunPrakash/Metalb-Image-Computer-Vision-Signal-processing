@@ -1,0 +1,90 @@
+
+Mtalb Code:
+
+%  ***  Function for Delta Modulation***********
+% (deltamod.m)
+function s_DMout=deltamod(sig_in,Delta,td,ts)
+% usage
+% s_DMout=deltamod(xsig,Delta,td,ts)
+% Delta-step size
+% sig_in-input signal vector
+% td-original signal sampling period of sig_in
+% NOTE: td*fs must be a positive integer;
+% S_DMout -DM sampled output
+% ts-new sampling period
+if (rem(ts/td,1)==0)
+    nfac=round(ts/td);
+    p_zoh=ones(1,nfac);
+    s_down=downsample(sig_in,nfac);
+    Num_it=length(s_down);
+    s_DMout(1)=Delta/2;
+    for k=2:Num_it
+        xvar=s_DMout(k-1);
+        s_DMout(k)=xvar+Delta*sign(s_down(k-1)-xvar);
+    end
+    s_DMout=kron(s_DMout,p_zoh);
+else
+        warning('Error! ts/t is not an integer!');
+        s_DMout=[];
+end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%********Delta Modulation **********************************%
+% togenerate DM signals with different step sizes,
+% Delta1=0.2,Delta2=Delta1,Delta3=Delta4
+clc;
+clear;
+clf;
+td=0.002;                        % original sampling rate rate 500 hz
+t=[0:td:1.];                     % time interval of 1 sec
+xsig=sin(2*pi*t)-sin(6*pi*t);    % 1hz +3 hz sinusoidals
+Lsig=length(xsig);
+ts=0.02;                         % new sampling rate =50 hz
+Nfact=ts/td;
+% send the signal through a 16-level uniform quantiser
+Delta1=0.2;
+s_DMout1=deltamod(xsig,Delta1,td,ts);
+% obtaind the DM signal
+% plot the original signal and DM signal in time domain figrue(1);
+figure(1);
+subplot(311);
+sfig1=plot(t,xsig,'k',t,s_DMout1(1:Lsig),'b');
+set(sfig1,'Linewidth',2);
+title('Signal {\it g}({{\it t}) and its DM signal')
+xlabel('time(sec.)');
+axis([0 1 -2.2 2.2]);
+% Apply DM again by doubling the Delta
+Delta2=2*Delta1;
+s_DMout2=deltamod(xsig,Delta2,td,ts);
+subplot(312);
+sfig2=plot(t,xsig,'k',t,s_DMout2(1:Lsig),'b');
+set(sfig2,'Linewidth',2);
+title('Signal {\it g}({\it t}) and DM signal with doubled stepsize')
+xlabel('time(sec.)');
+axis([0 1 -2.2 2.2]);
+%***********
+Delta3=2*Delta2;
+s_DMout3=deltamod(xsig,Delta3,td,ts);
+subplot(313);
+sfig3=plot(t,xsig,'k',t,s_DMout3(1:Lsig),'b');
+set(sfig3,'Linewidth',2);
+title('Signal {\it g}({\it t}) and DM signal with quadrupled stepsize')
+xlabel('time(sec.)');
+axis([0 1 -2.2 2.2]);
+
